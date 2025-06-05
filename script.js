@@ -67,21 +67,22 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Добавляем встроенный поиск
     const searchControl = new ymaps.control.SearchControl({
-      options: {
-        provider: 'yandex#search'
-      }
-    });
-    map.controls.add(searchControl);
+  options: {
+    provider: 'yandex#search'
+  }
+});
+map.controls.add(searchControl);
 
-    // Обработка выбора результата поиска
-    searchControl.events.add("resultselect", function (e) {
-      const index = e.get('index');
-      searchControl.getResult(index).then(function (res) {
-        const coords = res.geometry.getCoordinates();
-        map.setCenter(coords, 16);
-        setPlacemarkAndAddress(coords);
-      });
-    });
+// Обработка выбора результата поиска
+searchControl.events.add("resultselect", function (e) {
+  const index = e.get('index');
+  searchControl.getResult(index).then(function (res) {
+    const coords = res.geometry.getCoordinates();
+    map.setCenter(coords, 16);
+    setPlacemarkAndAddress(coords);
+  });
+});
+
 
     map.events.add("click", function (e) {
       const coords = e.get("coords");
