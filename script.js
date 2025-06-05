@@ -57,22 +57,24 @@ document.addEventListener("DOMContentLoaded", function () {
     };
 
   
-  ymaps.ready(initMap);
+   ymaps.ready(initMap);
 
   function initMap() {
     const defaultCity = document.getElementById("city").value;
     map = new ymaps.Map("map", {
       center: cityCenters[defaultCity],
-      zoom: 10
+      zoom: 10,
+      controls: [] // отключаем встроенные элементы управления
     });
 
-    // Встроенный поиск
+    // Добавляем только нужные элементы управления
     const searchControl = new ymaps.control.SearchControl({
       options: {
         provider: 'yandex#search'
       }
     });
     map.controls.add(searchControl);
+    map.controls.add('zoomControl');
 
     // Обработка выбора из поиска
     searchControl.events.add("resultselect", function (e) {
@@ -85,7 +87,7 @@ document.addEventListener("DOMContentLoaded", function () {
       });
     });
 
-    // Клик по карте
+    // Обработка клика по карте
     map.events.add("click", function (e) {
       const coords = e.get("coords");
       setPlacemarkAndAddress(coords);
