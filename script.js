@@ -56,6 +56,7 @@ document.addEventListener("DOMContentLoaded", function () {
         "Экибастуз": [51.723476, 75.322524]
     };
 
+  
   ymaps.ready(initMap);
 
   function initMap() {
@@ -65,30 +66,32 @@ document.addEventListener("DOMContentLoaded", function () {
       zoom: 10
     });
 
-    // Добавляем встроенный поиск
+    // Встроенный поиск
     const searchControl = new ymaps.control.SearchControl({
-  options: {
-    provider: 'yandex#search'
-  }
-});
-map.controls.add(searchControl);
+      options: {
+        provider: 'yandex#search'
+      }
+    });
+    map.controls.add(searchControl);
 
-// Обработка выбора результата поиска
-searchControl.events.add("resultselect", function (e) {
-  const index = e.get('index');
-  searchControl.getResult(index).then(function (res) {
-    const coords = res.geometry.getCoordinates();
-    map.setCenter(coords, 16);
-    setPlacemarkAndAddress(coords);
-  });
-});
+    // Обработка выбора из поиска
+    searchControl.events.add("resultselect", function (e) {
+      const index = e.get('index');
+      searchControl.getResult(index).then(function (res) {
+        const coords = res.geometry.getCoordinates();
+        const address = res.properties.get('text');
+        map.setCenter(coords, 16);
+        setPlacemarkAndAddress(coords, address);
+      });
+    });
 
-
+    // Клик по карте
     map.events.add("click", function (e) {
       const coords = e.get("coords");
       setPlacemarkAndAddress(coords);
     });
 
+    // Переключение города
     document.getElementById("city").addEventListener("change", function () {
       const selectedCity = this.value;
       if (cityCenters[selectedCity]) {
@@ -96,6 +99,7 @@ searchControl.events.add("resultselect", function (e) {
       }
     });
 
+    // Геолокация
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
     if (isMobile && navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
@@ -118,56 +122,44 @@ searchControl.events.add("resultselect", function (e) {
     });
   }
 
-  function setPlacemarkAndAddress(coords) {
+  function setPlacemarkAndAddress(coords, address = null) {
     if (placemark) {
       placemark.geometry.setCoordinates(coords);
     } else {
       placemark = createPlacemark(coords);
       map.geoObjects.add(placemark);
     }
-    getAddress(coords);
+    getAddress(coords, address);
   }
 
-  function getAddress(coords) {
-    ymaps.geocode(coords).then(function (res) {
-      const firstGeoObject = res.geoObjects.get(0);
-      const address = firstGeoObject.getAddressLine();
-      document.getElementById("address").value = address;
-      document.getElementById("coordinates").value = coords.join(", ");
-      const preview = document.getElementById("selected-address");
-      if (preview) {
-        preview.innerText = 'Выбранный адрес: ' + address;
-      }
+  function getAddress(coords, address = null) {
+    if (address) {
+      updateAddressFields(coords, address);
+    } else {
+      ymaps.geocode(coords).then(function (res) {
+        const firstGeoObject = res.geoObjects.get(0);
+        if (!firstGeoObject) {
+          console.warn("Адрес не найден по координатам:", coords);
+          return;
+        }
+        address = firstGeoObject.getAddressLine();
+        updateAddressFields(coords, address);
+      });
+    }
+  }
 
-      const citySelect = document.getElementById("city");
-      let detectedCity = firstGeoObject.getLocalities()[0] || firstGeoObject.getAdministrativeAreas()[0];
-      if (detectedCity) {
-        const detected = detectedCity.toLowerCase();
-        let matched = false;
-        for (let i = 0; i < citySelect.options.length; i++) {
-          const optionText = citySelect.options[i].text.toLowerCase();
-          if (optionText.includes(detected)) {
-            citySelect.selectedIndex = i;
-            matched = true;
-            break;
-          }
-        }
-        const detectedCityInput = document.getElementById("detected_city");
-        if (detectedCityInput) {
-          detectedCityInput.value = detectedCity;
-        }
-        if (!matched) {
-          const customOption = new Option(detectedCity, detectedCity, true, true);
-          citySelect.add(customOption, 0);
-          citySelect.selectedIndex = 0;
-        }
-      }
+  function updateAddressFields(coords, address) {
+    document.getElementById("address").value = address;
+    document.getElementById("coordinates").value = coords.join(", ");
+    const preview = document.getElementById("selected-address");
+    if (preview) {
+      preview.innerText = 'Выбранный адрес: ' + address;
+    }
 
-      const confirmation = document.getElementById("confirmation");
-      if (confirmation) {
-        confirmation.classList.remove("hidden");
-      }
-    });
+    const confirmation = document.getElementById("confirmation");
+    if (confirmation) {
+      confirmation.classList.remove("hidden");
+    }
   }
 
   document.getElementById("submissionForm").addEventListener("submit", async function (event) {
