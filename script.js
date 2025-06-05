@@ -222,6 +222,6 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 
   document.getElementById("phone").addEventListener("input", function () {
-    this.value = this.value.replace(/[^\\d]/g, '').slice(0, 11);
+    this.value = this.value.replace(/[^\d]/g, '').slice(0, 11);
   });
 });
