@@ -180,7 +180,7 @@ map.controls.add('zoomControl');
     const formData = new FormData(event.target);
     if (submitBtn) submitBtn.disabled = true;
     try {
-      const response = await fetch("https://script.google.com/macros/s/AKfycbyvGVEFMym5wPSWUHnfhl_KN_oDnhsgvmRGSohGK1CmUF8JeHkNl_Pd8HLuglQSlSpa/exec", {
+      const response = await fetch("https://script.google.com/macros/s/AKfycbx3SvdCJcumWvg7fZJq8u3yrqDwR0No_wOQvaW8AeMU_bPOGqD6wGc-bKeA8n_nzPAb/exec", {
         method: "POST",
         body: formData,
       });
